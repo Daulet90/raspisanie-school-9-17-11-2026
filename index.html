@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Расписание уроков 2026–2027</title>
+<style>
+:root{--bg:#f3f6f4;--card:#fff;--ink:#14231f;--mute:#5d6f69;--line:#d5dfdb;--today:#e4f2ec;
+--c9:#1d6b5a;--c8:#b4531f;--c5:#5b4fb0;--c6:#a8366b;--c7:#2d6aa8;--sp:#7a5c00}
+@media (prefers-color-scheme:dark){:root{--bg:#10191a;--card:#172426;--ink:#e6f0ec;--mute:#93a8a1;--line:#2b3f40;--today:#1c3330;
+--c9:#5fcfb4;--c8:#f2985f;--c5:#a89cf2;--c6:#f08cba;--c7:#7fb6f0;--sp:#e8c04a}}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Trebuchet MS","Segoe UI",Arial,sans-serif;padding:16px}
+main{max-width:1100px;margin:0 auto}
+h1{font:700 1.7rem/1.2 Georgia,"Times New Roman",serif;margin:.2em 0 .1em}
+.sub{color:var(--mute);margin:0 0 16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chips button{font:inherit;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:6px 14px;border-radius:20px;cursor:pointer}
+.chips button[aria-pressed=true]{border-color:var(--ink);font-weight:700}
+.chips button:focus-visible{outline:3px solid var(--c7);outline-offset:2px}
+h2{font:700 1.2rem Georgia,serif;margin:22px 0 8px}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:760px;table-layout:fixed}
+th,td{border:1px solid var(--line);padding:6px;vertical-align:top;height:78px}
+th{background:var(--bg);font-weight:700;height:auto;padding:8px}
+th.n,td.n{width:52px;text-align:center;font-weight:700;color:var(--mute);vertical-align:middle}
+.today{background:var(--today)}
+.l{border-left:5px solid var(--k);padding:3px 8px;border-radius:4px;background:color-mix(in srgb,var(--k) 12%,transparent);transition:opacity .15s}
+.l b{color:var(--k)}
+.l small{display:block;color:var(--mute)}
+.dim{opacity:.18}
+.t{display:block;color:var(--mute);font-size:.78rem;opacity:.75}
+td.e .t{opacity:.5}
+.l small.tm{font-weight:700;color:var(--ink);opacity:.8}
+.now{box-shadow:inset 0 0 0 3px var(--c9)}
+th.n small{display:block;font-weight:400;font-size:.7rem}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:22px}
+.sum div{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--k);border-radius:8px;padding:8px 12px}
+.sum strong{font-size:1.3rem}
+footer{color:var(--mute);font-size:.88rem;margin-top:18px}
+@media print{.chips{display:none}body{background:#fff;padding:0}}
+</style>
+</head>
+<body>
+<main>
+<h1>Расписание уроков</h1>
+<p class="sub">2026–2027 учебный год · 1 смена: 9Ә, 8Ә · 2 смена: 5Ә, 6Ә, 7Ә</p>
+<div class="chips" id="chips" role="group" aria-label="Фильтр по классу"></div>
+<h2>1 смена</h2>
+<div class="wrap"><table id="t1"></table></div>
+<h2>2 смена</h2>
+<div class="wrap"><table id="t2"></table></div>
+<div class="sum" id="sum"></div>
+<footer>Время — по расписанию звонков (Пн отличается от Вт–Пт). Данные — в массивах DATA и BELL в конце файла.</footer>
+</main>
+<script>
+var DAYS=["Понедельник","Вторник","Среда","Четверг","Пятница"];
+var COL={"9Ә":"--c9","8Ә":"--c8","5Ә":"--c5","6Ә":"--c6","7Ә":"--c7"};
+// shift, day (0=Пн), lesson, class, subject, room
+var DATA=[
+[1,0,5,"9Ә","Алгебра","54"],
+[1,1,1,"9Ә","Алгебра","35"],
+[1,2,5,"9Ә","Геометрия","6"],
+[1,3,6,"9Ә","Алгебра","51"],
+[1,4,1,"9Ә","Геометрия","54"],
+[1,0,4,"8Ә","Алгебра","54"],
+[1,1,2,"8Ә","Алгебра","11"],
+[1,2,2,"8Ә","Геометрия","51"],
+[1,3,4,"8Ә","Алгебра","54"],
+[1,3,7,"8Ә","Спецкурс",""],
+[1,4,2,"8Ә","Алгебра (по выбору)","51"],
+[2,0,2,"5Ә","Математика","54"],
+[2,1,3,"5Ә","Математика","54"],
+[2,2,1,"5Ә","Математика","54"],
+[2,3,4,"5Ә","Математика","54"],
+[2,4,2,"5Ә","Математика","54"],
+[2,0,4,"6Ә","Математика","54"],
+[2,1,1,"6Ә","Математика","54"],
+[2,2,2,"6Ә","Математика","54"],
+[2,3,3,"6Ә","Математика","54"],
+[2,4,1,"6Ә","Математика","54"],
+[2,0,1,"7Ә","Алгебра","54"],
+[2,1,2,"7Ә","Алгебра","54"],
+[2,2,3,"7Ә","Геометрия","54"],
+[2,3,2,"7Ә","Алгебра","54"],
+[2,4,0,"7Ә","Геометрия","54"]
+];
+// Расписание звонков: m — понедельник, o — вторник–пятница; kc — классный час, 0 — спецкурсы
+var BELL={
+"1m":{kc:"8:00–8:20",1:"8:25–9:05",2:"9:10–9:50",3:"10:05–10:45",4:"10:50–11:30",5:"11:45–12:25",6:"12:30–13:10",7:"13:15–13:55"},
+"1o":{1:"8:00–8:40",2:"8:45–9:25",3:"9:35–10:15",4:"10:20–11:00",5:"11:10–11:50",6:"11:55–12:35",7:"12:40–13:20"},
+"2m":{0:"13:15–13:55",kc:"14:00–14:20",1:"14:25–15:05",2:"15:15–15:55",3:"16:05–16:45",4:"16:55–17:35",5:"17:40–18:20",6:"18:25–19:05"},
+"2o":{0:"13:20–14:00",1:"14:00–14:40",2:"14:50–15:30",3:"15:45–16:25",4:"16:35–17:15",5:"17:20–18:00",6:"18:05–18:45"}
+};
+var today=(new Date().getDay()+6)%7, filter="all";
+var nowMin=new Date().getHours()*60+new Date().getMinutes();
+function bell(shift,d,r){return (BELL[shift+(d==0?"m":"o")]||{})[r]||""}
+function isNow(t){
+  var m=t.match(/(\d+):(\d+)–(\d+):(\d+)/); if(!m)return false;
+  return nowMin>=m[1]*60+ +m[2] && nowMin<m[3]*60+ +m[4];
+}
+function build(shift,rows,id){
+  var h="<tr><th class='n'>№</th>";
+  DAYS.forEach(function(d,i){h+="<th"+(i==today?" class='today'":"")+">"+d+"</th>"});
+  h+="</tr>";
+  rows.forEach(function(r){
+    var lab=r=="kc"?"КЧ":(r===0?"Сп.":r);
+    h+="<tr><td class='n'>"+lab+"</td>";
+    for(var d=0;d<5;d++){
+      var tm=bell(shift,d,r), cls=[];
+      if(d==today){cls.push("today"); if(isNow(tm))cls.push("now")}
+      var found=DATA.filter(function(x){return x[0]==shift&&x[1]==d&&x[2]===r});
+      if(!found.length)cls.push("e");
+      h+="<td"+(cls.length?" class='"+cls.join(" ")+"'":"")+">";
+      if(!found.length){
+        if(tm)h+="<span class='t'>"+(r=="kc"?"Классный час ":r===0?"Спецкурсы ":"")+tm+"</span>";
+      }
+      found.forEach(function(x){
+        h+="<div class='l' data-c='"+x[3]+"' style='--k:var("+COL[x[3]]+")'><b>"+x[3]+"</b> "+x[4]+
+           "<small class='tm'>"+tm+"</small><small>"+(x[5]?"каб. "+x[5]:"каб. не указан")+"</small></div>";
+      });
+      h+="</td>";
+    }
+    h+="</tr>";
+  });
+  document.getElementById(id).innerHTML=h;
+}
+build(1,["kc",1,2,3,4,5,6,7],"t1");
+build(2,[0,"kc",1,2,3,4,5,6],"t2");
+var cl=Object.keys(COL),cb="<button aria-pressed='true' data-f='all'>Все классы</button>";
+cl.forEach(function(c){cb+="<button aria-pressed='false' data-f='"+c+"'>"+c+"</button>"});
+document.getElementById("chips").innerHTML=cb;
+document.getElementById("chips").onclick=function(e){
+  var f=e.target.getAttribute("data-f"); if(!f)return; filter=f;
+  [].forEach.call(this.children,function(b){b.setAttribute("aria-pressed",b.getAttribute("data-f")==f)});
+  [].forEach.call(document.querySelectorAll(".l"),function(el){
+    el.classList.toggle("dim",f!="all"&&el.getAttribute("data-c")!=f)});
+};
+var s="";
+cl.forEach(function(c){
+  var n=DATA.filter(function(x){return x[3]==c}).length;
+  s+="<div style='--k:var("+COL[c]+")'><strong>"+n+"</strong> ур./нед.<br>"+c+"</div>";
+});
+s+="<div style='--k:var(--sp)'><strong>"+DATA.length+"</strong> всего в неделю</div>";
+document.getElementById("sum").innerHTML=s;
+</script>
+</body>
+</html>
